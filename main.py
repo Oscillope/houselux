@@ -20,60 +20,10 @@ except OSError:
     import sys
     sys.exit()
 
-def btn_cb():
-    global is_on
-    if not sta_if.isconnected():
-        print("Tried to change state before connected")
-        return
-    for client in config["clients"]:
-        addr_info = socket.getaddrinfo(client, 4444)
-        addr = addr_info[0][-1]
-        sock = socket.socket()
-        sock.connect(addr)
-        if is_on:
-            sock.send("0")
-        else:
-            sock.send("1")
-        sock.send("\r\n")
-        while True:
-            resp = sock.recv(100)
-            if resp:
-                print(resp)
-            else:
-                break
-        sock.close()
-    is_on = not is_on
-
 sta_if.connect(config["ssid"], config["password"])
 if (config["mode"] == "control"):
-    from disp import Display
-    from buttons import Buttons
-    import hue
-    screen = Display()
-    screen.print("Hello!")
-    screen.softbtn(["Off", "Conn..."])
-    while not sta_if.isconnected():
-        sleep(1)
-    screen.softbtn(["Off", "Ready"])
-    for client in config["clients"]:
-        addr_info = socket.getaddrinfo(client, 4444)
-        addr = addr_info[0][-1]
-        sock = socket.socket()
-        sock.connect(addr)
-        sock.send("1\r\n")
-        while True:
-            resp = sock.recv(100)
-            if resp:
-                screen.print(resp)
-            else:
-                break
-        is_on = True
-        screen.softbtn(["On", "Ready"])
-        sock.close()
-    screen.print("Find HUE")
-    hue_br = hue.Bridge()
-    hue_br.setGroup(1, on=True)
-    btns = Buttons(screen, [(12, btn_cb)])
+    import ctrl
+    ctrl.start(sta_if, config)
 elif (config["mode"] == "relay"):
     relay = machine.Pin(5, machine.Pin.OUT)
     relay.value(1) # Relay is active-low
