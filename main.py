@@ -25,35 +25,5 @@ if (config["mode"] == "control"):
     import ctrl
     ctrl.start(sta_if, config)
 elif (config["mode"] == "relay"):
-    relay = machine.Pin(5, machine.Pin.OUT)
-    relay.value(1) # Relay is active-low
-    while not sta_if.isconnected():
-        sleep(1)
-    addr = socket.getaddrinfo('0.0.0.0', 4444)[0][-1]
-    sock = socket.socket()
-    sock.bind(addr)
-    sock.listen(1)
-    print("listening on", addr)
-
-    while True:
-        cl, cl_addr = sock.accept()
-        print("connect from", cl_addr)
-        cl_file = cl.makefile('rwb', 0)
-        while True:
-            line = cl_file.readline()
-            print(line)
-            if b'1' in line:
-                is_on = True
-                relay.value(0)
-                break
-            elif b'0' in line:
-                is_on = False
-                relay.value(1)
-                break
-            if not line or line == b'\r\n':
-                break
-        if is_on:
-            cl.send("1 OK")
-        else:
-            cl.send("0 OK")
-        cl.close()
+    import relay
+    relay.start(sta_if)
