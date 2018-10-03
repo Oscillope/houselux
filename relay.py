@@ -24,7 +24,7 @@ def start(sta):
 
     while True:
         cl, cl_addr = sock.accept()
-        cl.settimeout(1.1)
+        cl.settimeout(1.25)
         print("connect from", cl_addr)
         while True:
             try:
