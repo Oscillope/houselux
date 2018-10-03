@@ -17,6 +17,7 @@ def start(sta):
     print("listening on", addr)
     print("Find HUE")
     hue_br = hue.Bridge()
+    is_on = False
 
     while True:
         cl, cl_addr = sock.accept()
@@ -31,10 +32,12 @@ def start(sta):
             if not line or line == b'\r\n':
                 break
             print(line)
-            if b'hb' in line:
+            if b'hb' in line and not is_on:
                 relay.value(0)
                 hue_br.setGroup(1, on=True)
+                is_on = True
         cl.close()
         relay.value(1)
         hue_br.setGroup(1, on=False)
+        is_on = False
         sleep_ms(100)
