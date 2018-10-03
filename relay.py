@@ -8,6 +8,8 @@ def start(sta):
     global relay
     relay = machine.Pin(5, machine.Pin.OUT)
     relay.value(1) # Relay is active-low
+    led = machine.Pin(2, machine.Pin.OUT)
+    led.value(0) # LED is active-low
     while not sta.isconnected():
         sleep_ms(500)
     addr = socket.getaddrinfo('0.0.0.0', 4444)[0][-1]
@@ -18,10 +20,11 @@ def start(sta):
     print("Find HUE")
     hue_br = hue.Bridge()
     is_on = False
+    led.value(1)
 
     while True:
         cl, cl_addr = sock.accept()
-        cl.settimeout(2)
+        cl.settimeout(1.1)
         print("connect from", cl_addr)
         while True:
             try:
@@ -31,13 +34,17 @@ def start(sta):
                 break
             if not line or line == b'\r\n':
                 break
+            led.value(0)
             print(line)
             if b'hb' in line and not is_on:
                 relay.value(0)
                 hue_br.setGroup(1, on=True)
                 is_on = True
+            led.value(1)
+        led.value(0)
         cl.close()
         relay.value(1)
         hue_br.setGroup(1, on=False)
         is_on = False
+        led.value(1)
         sleep_ms(100)

@@ -42,7 +42,7 @@ def thread_func():
                 socks[client].close()
             sock_open = False
             seq = 0
-        sleep_ms(1000)
+        sleep_ms(750)
 
 def btn_cb():
     global screen
