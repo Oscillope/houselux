@@ -19,7 +19,6 @@ def thread_func():
     global is_on
     sock_open = False
     socks = {}
-    seq = 0
     while True:
         if is_on:
             if not sock_open:
@@ -32,16 +31,14 @@ def thread_func():
                 sock_open = True
             for client in config["clients"]:
                 try:
-                    socks[client].send("hb" + str(seq) + "\r\n")
+                    socks[client].send("hb\r\n")
                 except OSError:
                     sock_open = False
-            seq += 1
         elif sock_open:
             screen.print("Close")
             for client in config["clients"]:
                 socks[client].close()
             sock_open = False
-            seq = 0
         sleep_ms(750)
 
 def btn_cb():
