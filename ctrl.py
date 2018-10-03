@@ -31,7 +31,10 @@ def thread_func():
                     socks[client].connect(addr)
                 sock_open = True
             for client in config["clients"]:
-                socks[client].send("hb" + str(seq) + "\r\n")
+                try:
+                    socks[client].send("hb" + str(seq) + "\r\n")
+                except OSError:
+                    sock_open = False
             seq += 1
         elif sock_open:
             screen.print("Close")
