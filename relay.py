@@ -2,7 +2,7 @@ import hue
 import machine
 import network
 import socket
-from utime import sleep_ms
+from utime import sleep_ms,ticks_ms,ticks_diff
 
 def start(sta):
     global relay
@@ -24,18 +24,21 @@ def start(sta):
 
     while True:
         cl, cl_addr = sock.accept()
-        cl.settimeout(1.25)
+        cl.settimeout(2)
+        last_time = ticks_ms()
         print("connect from", cl_addr)
         while True:
             try:
                 line = cl.readline()
+                time = ticks_ms()
             except OSError:
                 print("timeout")
                 break
             if not line or line == b'\r\n':
                 break
             led.value(0)
-            print(line)
+            print(ticks_diff(time, last_time))
+            last_time = time
             if b'hb' in line and not is_on:
                 relay.value(0)
                 hue_br.setGroup(1, on=True)
