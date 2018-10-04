@@ -39,7 +39,7 @@ def thread_func():
             for client in config["clients"]:
                 socks[client].close()
             sock_open = False
-        sleep_ms(750)
+        sleep_ms(700)
 
 def btn_cb():
     global screen
