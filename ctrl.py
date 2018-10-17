@@ -2,6 +2,7 @@ from disp import Display
 from buttons import Buttons
 import network
 import socket
+import machine
 from utime import sleep_ms
 import _thread
 
@@ -17,28 +18,19 @@ def thread_func():
     global sta_if
     global screen
     global is_on
-    sock_open = False
-    socks = {}
+    addrs = {}
     while True:
         if is_on:
-            if not sock_open:
-                screen.print("Begin hb")
-                for client in config["clients"]:
-                    addr_info = socket.getaddrinfo(client, 4444)
-                    addr = addr_info[0][-1]
-                    socks[client] = socket.socket()
-                    socks[client].connect(addr)
-                sock_open = True
             for client in config["clients"]:
+                addr_info = socket.getaddrinfo(client, 4444)
+                addrs[client] = addr_info[0][-1]
+            for client in config["clients"]:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                 try:
-                    socks[client].send("hb\r\n")
+                    sock.sendto("hb\r\n", addrs[client])
+                    sock.close()
                 except OSError:
-                    sock_open = False
-        elif sock_open:
-            screen.print("Close")
-            for client in config["clients"]:
-                socks[client].close()
-            sock_open = False
+                    pass
         sleep_ms(700)
 
 def btn_cb():
@@ -56,6 +48,12 @@ def start(sta, conf):
     global config
     sta_if = sta
     config = conf
+    prog = machine.Pin(12, machine.Pin.IN, machine.Pin.PULL_UP)
+    if (prog.value() == 0):
+        screen.print("Programming mode")
+        sleep_ms(1000)
+        import sys
+        sys.exit()
     while not sta_if.isconnected():
         sleep_ms(250)
     _thread.start_new_thread(thread_func, ())

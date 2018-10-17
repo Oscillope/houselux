@@ -13,9 +13,9 @@ def start(sta):
     while not sta.isconnected():
         sleep_ms(500)
     addr = socket.getaddrinfo('0.0.0.0', 4444)[0][-1]
-    sock = socket.socket()
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind(addr)
-    sock.listen(1)
+    sock.settimeout(1.5)
     print("listening on", addr)
     print("Find HUE")
     hue_br = hue.Bridge()
@@ -23,31 +23,27 @@ def start(sta):
     led.value(1)
 
     while True:
-        cl, cl_addr = sock.accept()
-        cl.settimeout(2)
         last_time = ticks_ms()
-        print("connect from", cl_addr)
-        while True:
-            try:
-                line = cl.readline()
-                time = ticks_ms()
-            except OSError:
-                print("timeout")
-                break
-            if not line or line == b'\r\n':
-                break
-            led.value(0)
-            print(ticks_diff(time, last_time))
-            last_time = time
-            if b'hb' in line and not is_on:
+        try:
+            line = sock.recvfrom(1024)
+            time = ticks_ms()
+        except OSError:
+            if is_on:
+                led.value(0)
+                relay.value(1)
+                hue_br.setGroup(1, on=False)
+                is_on = False
+                led.value(1)
+            sleep_ms(100)
+            continue
+        led.value(0)
+        print(ticks_diff(time, last_time))
+        last_time = time
+        if b'hb' in line[0]:
+            if not is_on:
                 relay.value(0)
                 hue_br.setGroup(1, on=True)
                 is_on = True
-            led.value(1)
-        led.value(0)
-        cl.close()
-        relay.value(1)
-        hue_br.setGroup(1, on=False)
-        is_on = False
+        else:
+            print(line)
         led.value(1)
-        sleep_ms(100)
