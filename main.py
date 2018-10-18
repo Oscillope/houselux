@@ -23,7 +23,8 @@ except OSError:
 sta_if.connect(config["ssid"], config["password"])
 if (config["mode"] == "control"):
     import ctrl
-    ctrl.start(sta_if, config)
+    ctrl = ctrl.Control(sta_if, config)
+    ctrl.start()
 elif (config["mode"] == "relay"):
     import relay
     relay.start(sta_if)
