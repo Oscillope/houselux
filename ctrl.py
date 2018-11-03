@@ -7,7 +7,7 @@ from utime import sleep_ms
 import _thread
 
 class Control:
-    def __init__(self, sta, conf):
+    def __init__(self, sta):
         self.is_on = True
         self.addrs = {}
 
@@ -23,9 +23,6 @@ class Control:
             sleep_ms(1000)
             import sys
             sys.exit()
-        for client in conf["clients"]:
-            addr_info = socket.getaddrinfo(client, 4444)
-            self.addrs[client] = addr_info[0][-1]
 
     def thread_func(self):
         while True:
@@ -59,9 +56,12 @@ class Control:
             self.screen.print("start hb")
         self.screen.softbtn([("On" if self.is_on else "Off"), "Ready"])
 
-    def start(self):
+    def start(self, conf):
         while not self.sta_if.isconnected():
             sleep_ms(250)
+        for client in conf["clients"]:
+            addr_info = socket.getaddrinfo(client, 4444)
+            self.addrs[client] = addr_info[0][-1]
         _thread.start_new_thread(self.thread_func, ())
         self.screen.softbtn(["On", "Ready"])
         btns = Buttons(self.screen, [(12, self.btn_cb)])
